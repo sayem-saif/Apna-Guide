@@ -14,7 +14,14 @@ tk = pytest.importorskip("tkinter", reason="tkinter not available")
 
 @pytest.fixture()
 def app():
-    """Create a WelcomeWindow instance with a headless Tk root."""
+    """
+    Create and yield a WelcomeWindow instance using a hidden Tk root for headless tests.
+    
+    This fixture constructs a Tk root, hides it, patches AGTSP.Image and AGTSP.ImageTk so image loading does not require external assets, instantiates WelcomeWindow with the hidden root, yields the window to the test, and destroys the root after the test completes.
+    
+    Returns:
+        WelcomeWindow: The instantiated WelcomeWindow bound to a hidden Tk root.
+    """
     root = tk.Tk()
     root.withdraw()  # hide the window (works even without a display)
 

@@ -29,7 +29,14 @@ DEFAULT_START = 'Mumbai'
 
 
 def build_city_graph():
-    """Build and return a networkx Graph with predefined cities and distances."""
+    """
+    Constructs the predefined city graph used for TSP operations.
+    
+    The returned graph contains a node for each city with a `pos` attribute holding the (x, y) coordinates, and undirected edges carrying a `weight` attribute that represents the distance between cities.
+    
+    Returns:
+        networkx.Graph: Graph with city nodes and weighted edges.
+    """
     G = nx.Graph()
     for city, pos in CITY_POSITIONS.items():
         G.add_node(city, pos=pos)
@@ -63,13 +70,34 @@ def nearest_neighbor_path(graph, start_node):
 
 
 def trim_path_to_destination(path, destination):
-    """Trim *path* so it stops at *destination* (inclusive)."""
+    """
+    Return the prefix of the given path that ends at `destination`.
+    
+    Parameters:
+        path (Sequence): Ordered sequence of nodes.
+        destination: Node value that must appear in `path`; trimming stops at its first occurrence.
+    
+    Returns:
+        list: A list containing the elements of `path` from the start up to and including `destination`.
+    
+    Raises:
+        ValueError: If `destination` is not present in `path`.
+    """
     dest_index = path.index(destination)
     return path[:dest_index + 1]
 
 
 def calculate_path_distance(graph, path):
-    """Return the total weight along *path* in *graph*."""
+    """
+    Compute the total weight of the given node sequence in the graph.
+    
+    Parameters:
+        graph (networkx.Graph): Graph whose edges store a numeric `weight` attribute.
+        path (Sequence): Ordered sequence of node identifiers representing the tour or route.
+    
+    Returns:
+        total_distance (float|int): Sum of the edge weights for each consecutive pair in `path`.
+    """
     return sum(
         graph[path[i]][path[i + 1]]['weight']
         for i in range(len(path) - 1)
@@ -77,5 +105,13 @@ def calculate_path_distance(graph, path):
 
 
 def validate_city(city_name):
-    """Return ``True`` if *city_name* is in the known city list."""
+    """
+    Check whether a city name is in the list of known cities.
+    
+    Parameters:
+        city_name (str): Name of the city to validate.
+    
+    Returns:
+        `true` if the city is in the known list, `false` otherwise.
+    """
     return city_name in VALID_CITIES

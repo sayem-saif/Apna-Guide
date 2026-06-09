@@ -15,6 +15,12 @@ import networkx as nx
 
 class WelcomeWindow(tk.Frame):
     def __init__(self, master=None):
+        """
+        Initialize the WelcomeWindow frame, configure the main window appearance, load a background image, and create UI widgets.
+        
+        Parameters:
+            master (tk.Tk or tk.Toplevel, optional): Parent window for this frame; if provided, its background and title are configured and the frame is attached to it.
+        """
         super().__init__(master)
         self.master = master
         self.master.config(background='black')
@@ -49,6 +55,11 @@ class WelcomeWindow(tk.Frame):
 
     # Handles Show Path button click - will display TSP path on graph
     def show_path(self):
+        """
+        Generate and display an approximate TSP route from the default start to the destination entered in the GUI.
+        
+        Validates the destination typed into the entry widget; if valid, constructs the city graph, renders the graph with node labels and edge weights, computes an approximate route ending at the destination and its total distance, highlights that route on the plot, and shows the matplotlib figure. If the entered destination is invalid, updates the frame's status label to "Invalid City name!".
+        """
         name = self.name_entry.get()
         if validate_city(name):
             G = build_city_graph()
