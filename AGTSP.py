@@ -1,7 +1,17 @@
-import networkx as nx
 import matplotlib.pyplot as plt
 import tkinter as tk
 from PIL import ImageTk, Image
+
+from tsp_core import (
+    VALID_CITIES,
+    DEFAULT_START,
+    build_city_graph,
+    nearest_neighbor_path,
+    trim_path_to_destination,
+    calculate_path_distance,
+    validate_city,
+)
+import networkx as nx
 
 class WelcomeWindow(tk.Frame):
     def __init__(self, master=None):
@@ -39,25 +49,9 @@ class WelcomeWindow(tk.Frame):
 
     # Handles Show Path button click - will display TSP path on graph
     def show_path(self):
-        valid_cities = ['Mumbai', 'Pune', 'Thane', 'Delhi']
         name = self.name_entry.get()
-        if name in valid_cities:
-            # Create a graph
-            G = nx.Graph()
-
-            # Add nodes with coordinates as attributes
-            G.add_node('Mumbai', pos=(0, 0),node_color='red')
-            G.add_node('Pune', pos=(1, 2))
-            G.add_node('Thane', pos=(3, 1))
-            G.add_node('Delhi', pos=(2, 3))
-
-            # Add edges with weights as attributes
-            G.add_edge('Mumbai', 'Pune', weight=120)
-            G.add_edge('Mumbai', 'Thane', weight=15)
-            G.add_edge('Mumbai', 'Delhi', weight=400)
-            G.add_edge('Pune', 'Thane', weight=90)
-            G.add_edge('Pune', 'Delhi', weight=250)
-            G.add_edge('Thane', 'Delhi', weight=305)
+        if validate_city(name):
+            G = build_city_graph()
 
             # Draw the graph
             pos = nx.get_node_attributes(G, 'pos')
@@ -67,36 +61,15 @@ class WelcomeWindow(tk.Frame):
             nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=15)
 
             # Find approximate solution using nearest neighbor heuristic
-            start_node = 'Mumbai'
-            path = [start_node]
-            visited = {node: False for node in G.nodes}
-            visited[start_node] = True
-
-            while len(path) < G.number_of_nodes():
-                current_node = path[-1]
-                min_dist = float('inf')
-                next_node = None
-                for neighbor in G.neighbors(current_node):
-                    if not visited[neighbor] and G[current_node][neighbor]['weight'] < min_dist:
-                        min_dist = G[current_node][neighbor]['weight']
-                        next_node = neighbor
-                path.append(next_node)
-                visited[next_node] = True
-
-            path.append(start_node)
-
-            #Trim path to stop at the destination city
-            dest_index = path.index(name)
-            trimmed_path = path[:dest_index+1]
-
-            # Calculate total distance of the path
-            total_distance = sum(G[trimmed_path[i]][trimmed_path[i+1]]['weight'] for i in range(len(trimmed_path)-1))
+            path = nearest_neighbor_path(G, DEFAULT_START)
+            trimmed_path = trim_path_to_destination(path, name)
+            total_distance = calculate_path_distance(G, trimmed_path)
 
             # Show the plot
             path_edges = list(zip(trimmed_path[:-1], trimmed_path[1:]))
 
             nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='red', width=3)
-            plt.suptitle(f"Path: {' → '.join(trimmed_path)} | Distance: {total_distance} km", fontsize=10, y=0.98, x=0.02, ha='left')
+            plt.suptitle(f"Path: {' \u2192 '.join(trimmed_path)} | Distance: {total_distance} km", fontsize=10, y=0.98, x=0.02, ha='left')
             plt.subplots_adjust(top=0.75)
             plt.tight_layout()
             plt.show()
