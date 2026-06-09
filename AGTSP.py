@@ -1,7 +1,12 @@
+import os
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import tkinter as tk
+from tkinter import messagebox
 from PIL import ImageTk, Image
+
+MAX_INPUT_LENGTH = 100
 
 class WelcomeWindow(tk.Frame):
     def __init__(self, master=None):
@@ -12,9 +17,15 @@ class WelcomeWindow(tk.Frame):
         
 
         # Load the background image
-        self.bg_image = ImageTk.PhotoImage(Image.open("fl.jpg"))
-        self.bg_label = tk.Label(self.master, image=self.bg_image)
-        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        image_path = os.path.join(base_dir, "fl.jpg")
+        try:
+            self.bg_image = ImageTk.PhotoImage(Image.open(image_path))
+            self.bg_label = tk.Label(self.master, image=self.bg_image)
+            self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        except FileNotFoundError:
+            self.bg_label = tk.Label(self.master, bg="black")
+            self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Create the widgets
         self.create_widgets()
@@ -37,10 +48,21 @@ class WelcomeWindow(tk.Frame):
         self.close_button = tk.Button(self.master, text="Show Path", command=self.show_path, font=("Algerian", 14))
         self.close_button.pack(side="top", padx=10, pady=10)
 
+    def _get_sanitized_input(self):
+        """Return trimmed, length-checked user input or None on failure."""
+        raw = self.name_entry.get()
+        text = raw.strip()
+        if len(text) > MAX_INPUT_LENGTH:
+            messagebox.showwarning("Input too long", f"City name must be under {MAX_INPUT_LENGTH} characters.")
+            return None
+        return text
+
     # Handles Show Path button click - will display TSP path on graph
     def show_path(self):
         valid_cities = ['Mumbai', 'Pune', 'Thane', 'Delhi']
-        name = self.name_entry.get()
+        name = self._get_sanitized_input()
+        if name is None:
+            return
         if name in valid_cities:
             # Create a graph
             G = nx.Graph()
@@ -105,7 +127,9 @@ class WelcomeWindow(tk.Frame):
             self.label.config(text=error)
 
     def greet_user(self):
-        name = self.name_entry.get()
+        name = self._get_sanitized_input()
+        if name is None:
+            return
         if name:
             greeting = f'''Hello From Mumbai To {name} This is The Shortest and Minimum cost path.
 *Click On Show Path To View Shortest Path or Enter Another Destination*'''
@@ -113,15 +137,13 @@ class WelcomeWindow(tk.Frame):
             greeting = "Hello! Welcome to my app."
         self.label.config(text=greeting)
 
-# Create a new instance of Tkinter
-root = tk.Tk()
+def main():
+    root = tk.Tk()
+    root.geometry("600x400+400+200")
+    app = WelcomeWindow(master=root)
+    app.mainloop()
 
-# Set the size of the main window and center it on the screen
-root.geometry("600x400+400+200")
 
-# Create the welcome window
-app = WelcomeWindow(master=root)
-
-# Run the main loop
-app.mainloop()
+if __name__ == "__main__":
+    main()
 
